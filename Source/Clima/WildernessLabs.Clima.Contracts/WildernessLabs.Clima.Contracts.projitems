@@ -9,9 +9,8 @@
     <Import_RootNamespace>Clima.Contracts</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Folder Include="$(MSBuildThisFileDirectory)Models\" />
-  </ItemGroup>
-  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Models\AdafruitIOData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\AdafruitIOFeed.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\ClimateReading.cs" />
   </ItemGroup>
 </Project>

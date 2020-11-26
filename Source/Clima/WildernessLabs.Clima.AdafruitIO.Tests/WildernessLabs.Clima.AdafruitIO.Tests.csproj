@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <Import Project="..\WildernessLabs.Clima.Contracts\WildernessLabs.Clima.Contracts.projitems" Label="Shared" />
+
+  <ItemGroup>
+    <PackageReference Include="Meadow.Foundation.DataLoggers" Version="0.5.16" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Meadow.Foundation\Source\Meadow.Foundation.Libraries_and_Frameworks\DataLoggers.AdafruitIO\DataLoggers.AdafruitIO.csproj" />
+  </ItemGroup>
+
+</Project>
