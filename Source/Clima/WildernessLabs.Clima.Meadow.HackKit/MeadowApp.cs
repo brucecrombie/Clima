@@ -48,7 +48,7 @@ namespace Clima.Meadow.HackKit
 
             //==== post the reading
             Console.WriteLine("Posting the temp reading");
-            ClimateServiceFacade.PostTempReading((decimal)conditions.Temperature).Wait();
+            //ClimateServiceFacade.PostTempReading(conditions.Temperature).Wait();
             Console.WriteLine("Posted.");
 
             //==== fetch the readings again

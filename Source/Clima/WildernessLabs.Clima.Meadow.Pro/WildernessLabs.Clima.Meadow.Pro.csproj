@@ -12,14 +12,20 @@
     <EmbeddedResource Include="meadow.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Meadow.Foundation" Version="0.19.0" />
+    <PackageReference Include="Meadow.Foundation" Version="0.20.0" />
+    <PackageReference Include="Meadow.Foundation.RTCs.Ds323x" Version="0.1.19" />
+    <PackageReference Include="Meadow.Foundation.Sensors.Atmospheric.Bme280" Version="0.5.23" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.9.0-2.final" />
     <PackageReference Include="SimpleJpegDecoder" Version="0.2.0" />
     <PackageReference Include="System.Text.Json" Version="5.0.0" />
-    <PackageReference Include="Meadow.Foundation.Displays.TftSpi" Version="0.7.18" />
+    <PackageReference Include="Meadow.Foundation.Displays.TftSpi" Version="0.7.23" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Controllers\" />
     <Folder Include="ServiceAccessLayer\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Meadow.Foundation\Source\Meadow.Foundation.Libraries_and_Frameworks\DataLoggers.AdafruitIO\DataLoggers.AdafruitIO.csproj" />
   </ItemGroup>
   <Import Project="..\WildernessLabs.Clima.Contracts\WildernessLabs.Clima.Contracts.projitems" Label="Shared" Condition="Exists('..\WildernessLabs.Clima.Contracts\WildernessLabs.Clima.Contracts.projitems')" />
 </Project>

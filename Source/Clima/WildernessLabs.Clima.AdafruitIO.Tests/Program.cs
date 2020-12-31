@@ -1,20 +1,20 @@
 ﻿using Clima.Contracts.Models;
+using Meadow.Foundation.DataLoggers;
 using System;
 using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
-using Meadow.Foundation.DataLoggers;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace WildernessLabs.Clima.AdafruitIO.Tests
 {
-    class Program
+    public class Program
     {
         static void Main()
         {
             Console.WriteLine("Hello from AdafruitIO test!");
             Console.WriteLine("Create the Adafruit IO Logger");
-            // TODO: Change this to a factory pattern so we can jsut call 
+
+            // TODO: Change this to a factory pattern so we can jsut call
             // LoggerFactory.CreateLogger(LoggerType.AdafruitIO) were LoggerType is an enum of the logging types.
             // need to difine standard logging interface.
             Meadow.Foundation.DataLoggers.AdafruitIO logger =
@@ -31,7 +31,6 @@ namespace WildernessLabs.Clima.AdafruitIO.Tests
 
             Console.WriteLine("Writing to Adafruit IO using AdafruitIO.PostValues");
             logger.PostValues(sensorReadings);
-
 
             Console.WriteLine("Reading from Adafruit IO using AdafruitIO.PostValues...");
             AdafruitIOData[] feeds;
@@ -57,72 +56,70 @@ namespace WildernessLabs.Clima.AdafruitIO.Tests
             PrintOutData(feeds);
         }
 
-        public static async Task<AdafruitIOData[]> GetFeedDataAsync(string UserName, string IO_Key, string Feed_Key)
+        public static async Task<AdafruitIOData[]> GetFeedDataAsync(string userName, string iO_Key, string feed_Key)
         {
-            string uri = $"http://io.adafruit.com/api/v2/{UserName}/feeds/{Feed_Key}/data";
-            return await GetAdafruitFeedAsync(uri, IO_Key);
+            string uri = $"http://io.adafruit.com/api/v2/{userName}/feeds/{feed_Key}/data";
+            return await GetAdafruitFeedAsync(uri, iO_Key);
         }
 
-        public static async Task<AdafruitIOData[]> GetPreviousDataAsync(string UserName, string IO_Key, string Feed_Key)
+        public static async Task<AdafruitIOData[]> GetPreviousDataAsync(string userName, string iO_Key, string feed_Key)
         {
-            string uri = $"http://io.adafruit.com/api/v2/{UserName}/feeds/{Feed_Key}/data/previous";
-            return await GetAdafruitFeedAsync(uri, IO_Key);
+            string uri = $"http://io.adafruit.com/api/v2/{userName}/feeds/{feed_Key}/data/previous";
+            return await GetAdafruitFeedAsync(uri, iO_Key);
         }
 
-        public static async Task<AdafruitIOData[]> GetNextDataAsync(string UserName, string IO_Key, string Feed_Key)
+        public static async Task<AdafruitIOData[]> GetNextDataAsync(string userName, string iO_Key, string feed_Key)
         {
-            string uri = $"http://io.adafruit.com/api/v2/{UserName}/feeds/{Feed_Key}/data/next";
-            return await GetAdafruitFeedAsync(uri, IO_Key);
+            string uri = $"http://io.adafruit.com/api/v2/{userName}/feeds/{feed_Key}/data/next";
+            return await GetAdafruitFeedAsync(uri, iO_Key);
         }
 
-        public static async Task<AdafruitIOData[]> GetLastDataAsync(string UserName, string IO_Key, string Feed_Key)
+        public static async Task<AdafruitIOData[]> GetLastDataAsync(string userName, string iO_Key, string feed_Key)
         {
-            string uri = $"http://io.adafruit.com/api/v2/{UserName}/feeds/{Feed_Key}/data/last";
-            return await GetAdafruitFeedAsync(uri, IO_Key);
+            string uri = $"http://io.adafruit.com/api/v2/{userName}/feeds/{feed_Key}/data/last";
+            return await GetAdafruitFeedAsync(uri, iO_Key);
         }
 
-        public static async Task<AdafruitIOData[]> GetFirstDataAsync(string UserName, string IO_Key, string Feed_Key)
+        public static async Task<AdafruitIOData[]> GetFirstDataAsync(string userName, string iO_Key, string feed_Key)
         {
-            string uri = $"http://io.adafruit.com/api/v2/{UserName}/feeds/{Feed_Key}/data/first";
-            return await GetAdafruitFeedAsync(uri, IO_Key);
-        }
-        public static async Task<AdafruitIOData[]> GetAllFeedsDataAsync(string UserName, string IO_Key)
-        {
-            string uri = $"http://io.adafruit.com/api/v2/{UserName}/feeds";
-            return await GetAdafruitFeedAsync(uri, IO_Key);
+            string uri = $"http://io.adafruit.com/api/v2/{userName}/feeds/{feed_Key}/data/first";
+            return await GetAdafruitFeedAsync(uri, iO_Key);
         }
 
-        private static async Task<AdafruitIOData[]> GetAdafruitFeedAsync(string uri, string IO_Key)
+        public static async Task<AdafruitIOData[]> GetAllFeedsDataAsync(string userName, string iO_Key)
         {
-            using (HttpClient httpClient = new HttpClient())
+            string uri = $"http://io.adafruit.com/api/v2/{userName}/feeds";
+            return await GetAdafruitFeedAsync(uri, iO_Key);
+        }
+
+        private static async Task<AdafruitIOData[]> GetAdafruitFeedAsync(string uri, string iO_Key)
+        {
+            using HttpClient httpClient = new HttpClient { Timeout = new TimeSpan(0, 5, 0) };
+            httpClient.DefaultRequestHeaders.Add("X-AIO-Key", iO_Key);
+            HttpResponseMessage response = await httpClient.GetAsync(uri);
+
+            try
             {
-                httpClient.Timeout = new TimeSpan(0, 5, 0);
-                httpClient.DefaultRequestHeaders.Add("X-AIO-Key", IO_Key);
-                HttpResponseMessage response = await httpClient.GetAsync(uri);
+                response.EnsureSuccessStatusCode();
 
-                try
-                {
-                    response.EnsureSuccessStatusCode();
+                string json = await response.Content.ReadAsStringAsync();
+                AdafruitIOData[] returnData;
+                if (json.Substring(0, 1) == "[") // an array of feeds was returned
+                    returnData = JsonSerializer.Deserialize<AdafruitIOData[]>(json);
+                else
+                    returnData = new AdafruitIOData[] { JsonSerializer.Deserialize<AdafruitIOData>(json) };
 
-                    string json = await response.Content.ReadAsStringAsync();
-                    AdafruitIOData[] returnData;
-                    if (json.Substring(0,1) == "[") // an array of feeds was returned
-                        returnData = JsonSerializer.Deserialize<AdafruitIOData[]>(json);
-                    else
-                        returnData = new AdafruitIOData[] { JsonSerializer.Deserialize<AdafruitIOData>(json) };
-
-                    return returnData;
-                }
-                catch (TaskCanceledException)
-                {
-                    Console.WriteLine("Request timed out.");
-                    return null;
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"Request went sideways: {e.Message}");
-                    return null;
-                }
+                return returnData;
+            }
+            catch (TaskCanceledException)
+            {
+                Console.WriteLine("Request timed out.");
+                return null;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Request went sideways: {e.Message}");
+                return null;
             }
         }
 
@@ -138,6 +135,5 @@ namespace WildernessLabs.Clima.AdafruitIO.Tests
                 Console.WriteLine($"\tCreated At: {item.CreatedAt}");
             }
         }
-
     }
 }

@@ -21,7 +21,7 @@ namespace Clima.Meadow.HackKit.ServiceAccessLayer
         /// </summary>
         /// <param name="tempC"></param>
         /// <returns></returns>
-        public static async Task PostTempReading(decimal tempC)
+        public static async Task PostTempReading(float tempC)
         {
             ClimateReading climateReading = new ClimateReading() { TempC = tempC };
 

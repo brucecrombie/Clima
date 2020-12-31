@@ -1,69 +1,61 @@
-﻿using System;
-using System.IO;
-using System.Reflection;
-using Meadow.Foundation;
+﻿using Meadow.Foundation;
 using Meadow.Foundation.Displays.Tft;
 using Meadow.Foundation.Graphics;
-using Meadow.Hardware;
 using Meadow.Peripherals.Sensors.Atmospheric;
 using SimpleJpegDecoder;
+using System;
+using System.IO;
+using System.Reflection;
 
 namespace Clima.Meadow.HackKit.Controllers
 {
     public class DisplayController
     {
-        // internals
-        protected St7789 display;
-        protected GraphicsLibrary graphics;
-        protected AtmosphericConditions conditions;
+        #region Private Fields
+
+        private readonly St7789 display;
+        private GraphicsLibrary graphicsLibrary;
+        private AtmosphericConditions conditions;
 
         // rendering state and lock
-        protected bool isRendering = false;
-        protected object renderLock = new object();
+        private bool isRendering = false;
+        private readonly object renderLock = new object();
 
-        public DisplayController()
+        #endregion Private Fields
+
+        #region Constructor(s)
+
+        public DisplayController(St7789 display)
         {
+            this.display = display;
             InitializeDisplay();
         }
 
+        #endregion Constructor(s)
+
+        #region Public Methods
+
+        public void UpdateDisplay(AtmosphericConditions conditions)
+        {
+            this.conditions = conditions;
+            Render();
+        }
+
+        #endregion Public Methods
+
+        #region Private Methoods
+
         /// <summary>
-        /// intializes the physical display peripheral, as well as the backing
-        /// graphics library.
+        ///  Initialize the backing graphics library.
         /// </summary>
         protected void InitializeDisplay()
         {
-            // our display needs mode3
-            var config = new SpiClockConfiguration(6000, SpiClockConfiguration.Mode.Mode3);
-
-            // new up the actual display on the SPI bus
-            display = new St7789
-            (
-                device: MeadowApp.Device,
-                spiBus: MeadowApp.Device.CreateSpiBus(MeadowApp.Device.Pins.SCK, MeadowApp.Device.Pins.MOSI, MeadowApp.Device.Pins.MISO, config),
-                chipSelectPin: null,
-                dcPin: MeadowApp.Device.Pins.D01,
-                resetPin: MeadowApp.Device.Pins.D00,
-                width: 240, height: 240
-            );
-
             // create our graphics surface that we'll draw onto and then blit
             // to the display with.
-            graphics = new GraphicsLibrary(display) {   // my display is upside down
-                // Rotation = GraphicsLibrary.RotationType._180Degrees,
-                CurrentFont = new Font12x20(),
-            };
+            graphicsLibrary = new GraphicsLibrary(display) { CurrentFont = new Font12x20() };
 
             Console.WriteLine("Clear display");
-
-            // finally, clear the display so it's ready for action
-            graphics.Clear(true);
-
-            //Render();
-        }
-
-        public void UpdateDisplay(AtmosphericConditions conditions) {
-            this.conditions = conditions;
-            this.Render();  
+            graphicsLibrary.Clear(true);
         }
 
         /// <summary>
@@ -74,8 +66,10 @@ namespace Clima.Meadow.HackKit.Controllers
         {
             Console.WriteLine($"Render() - is rendering: {isRendering}");
 
-            lock (renderLock) {   // if we're already rendering, bail out.
-                if (isRendering) {
+            lock (renderLock)
+            {
+                if (isRendering)
+                {
                     Console.WriteLine("Already in a rendering loop, bailing out.");
                     return;
                 }
@@ -83,37 +77,60 @@ namespace Clima.Meadow.HackKit.Controllers
                 isRendering = true;
             }
 
-            graphics.Clear(true);
+            graphicsLibrary.Clear(true);
 
-            graphics.Stroke = 1;
-            graphics.DrawRectangle(0, 0, (int)display.Width, (int)display.Height, Color.White);
-            graphics.DrawRectangle(5, 5, (int)display.Width - 10, (int)display.Height - 10, Color.White);
+            graphicsLibrary.Stroke = 1;
+            graphicsLibrary.DrawRectangle(xLeft: 0,
+                                          yTop: 0,
+                                          width: (int)display.Width,
+                                          height: (int)display.Height,
+                                          color: Color.White);
+            graphicsLibrary.DrawRectangle(xLeft: 5,
+                                          yTop: 5,
+                                          width: (int)display.Width - 10,
+                                          height: (int)display.Height - 10,
+                                          color: Color.White);
+            graphicsLibrary.DrawCircle(centerX: (int)display.Width / 2,
+                                       centerY: (int)display.Height / 2,
+                                       radius: (int)display.Width / 2,
+                                       color: Color.FromHex("#23abe3"),
+                                       filled: true);
+            DisplayJPG(50, 40);
 
-            graphics.DrawCircle((int)display.Width / 2, (int)display.Height / 2, (int)(display.Width / 2) - 10, Color.FromHex("#23abe3"), true);
+            string tempText = $"{conditions.Temperature?.ToString("##.#")}°C";
+            string humidityText = $"{conditions.Humidity?.ToString("##.#")}% rh";
+            string pressureText = $"{(conditions.Pressure/1000f)?.ToString("####.0")} kPa";
 
-            DisplayJPG();
+            graphicsLibrary.CurrentFont = new Font12x20();
+            graphicsLibrary.DrawText(x: (int)(display.Width - (tempText.Length * 24)) / 2,
+                                      y: 120,
+                                      text: tempText,
+                                      color: Color.Black,
+                                      scaleFactor: GraphicsLibrary.ScaleFactor.X2);
 
-            string text = $"{conditions.Temperature?.ToString("##.#")}°C";
+            graphicsLibrary.CurrentFont = new Font8x12();
+            graphicsLibrary.DrawText(x: (int)(display.Width - (humidityText.Length * 16)) / 2,
+                                      y: 160,
+                                      text: humidityText,
+                                      color: Color.Black,
+                                      scaleFactor: GraphicsLibrary.ScaleFactor.X2);
 
-            graphics.CurrentFont = new Font12x20();
-            graphics.DrawText(
-                x: (int)(display.Width - text.Length * 24) / 2, 
-                y: 140, 
-                text: text, 
-                color: Color.Black, 
-                scaleFactor: GraphicsLibrary.ScaleFactor.X2);
+            graphicsLibrary.CurrentFont = new Font8x12();
+            graphicsLibrary.DrawText(x: (int)(display.Width - (pressureText.Length * 16)) / 2,
+                                      y: 185,
+                                      text: pressureText,
+                                      color: Color.Black,
+                                      scaleFactor: GraphicsLibrary.ScaleFactor.X2);
 
-            graphics.Rotation = GraphicsLibrary.RotationType._270Degrees;
+            graphicsLibrary.Rotation = GraphicsLibrary.RotationType._270Degrees;
 
-            graphics.Show();
-
+            graphicsLibrary.Show();
             Console.WriteLine("Show complete");
 
             isRendering = false;
-
         }
 
-        protected void DisplayJPG()
+        protected void DisplayJPG(int locX, int locY)
         {
             var jpgData = LoadResource("meadow.jpg");
             var decoder = new JpegDecoder();
@@ -129,7 +146,7 @@ namespace Clima.Meadow.HackKit.Controllers
                 g = jpg[i + 1];
                 b = jpg[i + 2];
 
-                graphics.DrawPixel(x + 55, y + 40, Color.FromRgb(r, g, b));
+                graphicsLibrary.DrawPixel(x + locX, y + locY, Color.FromRgb(r, g, b));
 
                 x++;
                 if (x % decoder.Width == 0)
@@ -156,5 +173,6 @@ namespace Clima.Meadow.HackKit.Controllers
                 }
             }
         }
+        #endregion Private Methoods
     }
 }

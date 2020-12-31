@@ -18,8 +18,8 @@ namespace Clima.Server.Mini.Controllers
                 ID = 1,
                 //TimeOfReading = DateTime.Now,
                 TempC = 22,
-                BarometricPressureMillibarHg = 200,
-                RelativeHumdity = 0.5m
+                BarometricPressurehPa = 200,
+                RelativeHumdity = 0.5f
             };
             ClimateReadings.Add((long)item.ID, item);
         }

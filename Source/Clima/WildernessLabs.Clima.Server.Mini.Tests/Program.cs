@@ -10,16 +10,16 @@ namespace WildernessLabs.Clima.Server.Mini.Tests
 {
     class Program
     {
-        static string climateDataUri = "http://192.168.0.41:2792/ClimateData";
+        static string climateDataUri = "http://10.0.0.131:2792/ClimateData";
 
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
-            //GetWebPageViaHttpClient("http://192.168.0.41:2792/ClimateData").Wait();
+            //GetWebPageViaHttpClient("http://10.0.0.131:2792/ClimateData").Wait();
 
             FetchReadings().Wait();
 
-            PostTempReading(26.4m).Wait();
+            PostTempReading(27.5f).Wait();
 
             FetchReadings().Wait();
         }
@@ -53,6 +53,7 @@ namespace WildernessLabs.Clima.Server.Mini.Tests
                     string json = await response.Content.ReadAsStringAsync();
                     System.Json.JsonArray climateReadings = System.Json.JsonArray.Parse(json) as System.Json.JsonArray;
                     foreach (var climateReading in climateReadings) {
+
                         Console.WriteLine($"ClimateReading; TempC:{climateReading["tempC"]}");
                     }
 
@@ -93,7 +94,7 @@ namespace WildernessLabs.Clima.Server.Mini.Tests
 
         }
 
-        static async Task PostTempReading(decimal tempC)
+        static async Task PostTempReading(float tempC)
         {
             ClimateReading climateReading = new ClimateReading() { TempC = tempC };
 
