@@ -31,17 +31,16 @@ namespace WildernessLabs.Clima.App
 
         public MainViewModel() 
         {
-            ClimateList = new ObservableCollection<ClimaModel>();
-
-            IpAddress = "192.168.1.67";
+            ClimateList = new ObservableCollection<ClimaModel>();            
 
             GetHumidityCommand = new Command(async (s) => await GetReadingsAsync());
-
-            GetReadingsAsync();
         }
 
         async Task GetReadingsAsync()
         {
+            if (string.IsNullOrEmpty(IpAddress))
+                throw new InvalidEnumArgumentException("You must enter a valid IP address.");
+
             ClimateList.Clear();
 
             var response = await NetworkManager.GetAsync(IpAddress);
@@ -53,7 +52,7 @@ namespace WildernessLabs.Clima.App
 
                 foreach (ClimateReading value in values)
                 {
-                    ClimateList.Add(new ClimaModel() { Id = value.ID, Temperature = value.TempC });
+                    ClimateList.Add(new ClimaModel() { Date = value.TimeOfReading.ToString(), Temperature = value.TempC });
                 }                
             }
 
